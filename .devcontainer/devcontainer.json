@@ -1,0 +1,11 @@
+{
+    "name": "semantic-segmentation",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "myapp",
+    "workspaceFolder": "/usr/src/app",
+    "extensions": [
+      "ms-python.python"
+      // Add other extensions here
+    ],
+    // Other configurations...
+}

@@ -1,0 +1,14 @@
+name: semantic-segmentation-3
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - numpy
+  - matplotlib
+  - jupyter
+  - pytorch
+  - torchvision
+  - cudatoolkit
+  - pip
+  - pip:
+    - opencv-python

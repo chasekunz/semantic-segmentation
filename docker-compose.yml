@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  myapp:
+    build: .
+    volumes:
+      - .:/usr/src/app
+      - ./models_cache:/root/.cache/torch/hub/checkpoints
+    ports:
+      - "8888:8888" # Port for Jupyter Notebook
+      - "5678:5678" # Port for Python Debugger
+    environment:
+      PYTHONPATH: "/usr/src/app"
+    command: "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+    runtime: nvidia
