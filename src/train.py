@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import torch
 
 def train_model(model, trainloader, validateloader, criterion, optimizer, num_epochs=10, patience=3, device='cuda'):
     """
@@ -17,13 +18,18 @@ def train_model(model, trainloader, validateloader, criterion, optimizer, num_ep
     Returns:
         list: A list of loss values for each epoch.
     """
-    # Initialize a list to store the loss values
-    epoch_losses = []
+    # Initialize lists to store the loss values for each epoch
+    train_losses = []
+    valid_losses = []
+    
+    # Initialize variables for early stopping
+    best_val_loss = float('inf')
+    epochs_no_improve = 0
 
-    # Training loop
     for epoch in range(num_epochs):
+        # Training phase
         model.train()
-        total_loss = 0
+        total_train_loss = 0
         for images, masks in trainloader:
             images = images.to(device)
             masks = masks.to(device)
@@ -32,12 +38,33 @@ def train_model(model, trainloader, validateloader, criterion, optimizer, num_ep
             loss = criterion(outputs, masks)
             loss.backward()
             optimizer.step()
+            total_train_loss += loss.item()
+        average_train_loss = total_train_loss / len(trainloader)
+        train_losses.append(average_train_loss)
 
-            total_loss += loss.item()
+        # Validation phase
+        model.eval()
+        total_val_loss = 0
+        with torch.no_grad():
+            for images, masks in validateloader:
+                images = images.to(device)
+                masks = masks.to(device)
+                outputs = model(images)['out']
+                loss = criterion(outputs, masks)
+                total_val_loss += loss.item()
+        average_val_loss = total_val_loss / len(validateloader)
+        valid_losses.append(average_val_loss)
 
-        # Average loss for this epoch
-        average_loss = total_loss / len(trainloader)
-        epoch_losses.append(average_loss)
-        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {average_loss:.4f}')
+        print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {average_train_loss:.4f}, Validation Loss: {average_val_loss:.4f}')
 
-    return epoch_losses
+        # Check for improvement for early stopping
+        if average_val_loss < best_val_loss:
+            best_val_loss = average_val_loss
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+            if epochs_no_improve >= patience:
+                print("Early stopping initiated.")
+                break
+
+    return train_losses, valid_losses
